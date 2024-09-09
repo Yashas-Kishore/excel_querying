@@ -1,6 +1,6 @@
 ### Project Description
 
-**Project Title: Excel Data Query and Conversion Tool**
+**Project Title: Excel Conversion and Data Query Tool**
 
 **Description:**
 
