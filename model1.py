@@ -69,29 +69,50 @@ def query_data(sheet_columns, data):
     print("\nWelcome to the JSON data query interface!")
     display_attributes(sheet_columns)  # Show available attributes (column names) to the user
 
-    print("\nYou can ask queries about the data by typing anything.")
-    print("For example, type a name, value, or keyword. Type 'exit' to quit.")
+    print("\nYou can specify column names and values to search.")
+    print("For example, first select a column, then provide the value you want to search for in that column.")
+    print("You can search multiple columns and values at once. Type 'exit' to quit.")
 
     while True:
-        query = input("\nEnter your query: ").lower()
-        if query == 'exit':
-            break
-        else:
-            found = False
-            seen_rows = set()  # To keep track of already printed rows
-            for worksheet_name, worksheet_data in data.items():
-                for row in worksheet_data:
-                    for column_name, value in row.items():
-                        if query in value.lower():
-                            row_tuple = tuple(row.items())  # Convert row to a tuple to be hashable
-                            if row_tuple not in seen_rows:
-                                seen_rows.add(row_tuple)
-                                print(f"Found a match in worksheet '{worksheet_name}' at column '{column_name}'!")
-                                print(row)
-                                found = True
-            if not found:
-                print("No matches found.")
+        search_criteria = {}
 
+        # Loop to get user input for multiple column-value pairs
+        while True:
+            column = input("\nEnter a column name to search (or type 'done' to finish): ").strip()
+            if column.lower() == 'done':
+                break
+            elif column.lower() == 'exit':
+                return
+            else:
+                # Check if the column exists in any of the sheets
+                available_columns = set(col for cols in sheet_columns.values() for col in cols)
+                if column not in available_columns:
+                    print(f"Column '{column}' not found. Please select from available columns.")
+                    display_attributes(sheet_columns)
+                    continue
+
+                value = input(f"Enter the value to search for in column '{column}': ").strip().lower()
+                search_criteria[column] = value
+
+        if not search_criteria:
+            print("No search criteria provided. Please enter at least one column-value pair.")
+            continue
+
+        found = False
+        seen_rows = set()  # To keep track of already printed rows
+        for worksheet_name, worksheet_data in data.items():
+            for row in worksheet_data:
+                # Check if all column-value pairs match for the row
+                if all(search_criteria[col].lower() in (str(row[col]).lower() if row[col] else '') for col in search_criteria):
+                    row_tuple = tuple(row.items())  # Convert row to a tuple to be hashable
+                    if row_tuple not in seen_rows:
+                        seen_rows.add(row_tuple)
+                        print(f"\nFound a match in worksheet '{worksheet_name}'!")
+                        print(row)
+                        found = True
+
+        if not found:
+            print("No matches found.")
 
 def main():
     file_path = input("Enter the path to the Excel file: ")
